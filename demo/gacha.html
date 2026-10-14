@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日抽卡 · 麦门抽卡机 McGacha</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: radial-gradient(ellipse at 50% 0%, #2a1a12 0%, #141010 60%);
+    color:#f5f0e8; min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    padding-bottom: 48px;
+  }
+  .topbar {
+    width:100%; max-width: 960px; padding: 20px 24px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .back { color:#9c8f80; text-decoration:none; font-size:13px; }
+  .back:hover { color:#FFC72C; }
+  .period {
+    font-size:12px; padding:5px 14px; border-radius:999px;
+    background:#33291f; color:#FFC72C; letter-spacing:1px;
+  }
+
+  /* ===== 卡牌舞台 ===== */
+  .stage { perspective: 1200px; margin-top: 24px; }
+  .card3d {
+    width: 340px; height: 500px; position:relative;
+    transform-style: preserve-3d;
+    transition: transform .7s cubic-bezier(.2,.8,.3,1.1);
+  }
+  .card3d.flipped { transform: rotateY(180deg); }
+  .face {
+    position:absolute; inset:0; border-radius: 20px;
+    backface-visibility: hidden;
+    display:flex; flex-direction:column; align-items:center;
+    overflow:hidden;
+  }
+  .face.back {
+    background: linear-gradient(160deg, #DA291C 0%, #a51e14 100%);
+    border: 3px solid #FFC72C;
+    justify-content:center; cursor:pointer;
+  }
+  .face.back .mark { width: 124px; height: auto; opacity: .95; }
+  .face.back .hint { margin-top:28px; color:#ffe9a8; font-size:14px; letter-spacing:3px; }
+  .face.front {
+    background: linear-gradient(180deg, #241b16 0%, #17110d 100%);
+    border: 3px solid #FFC72C;
+    transform: rotateY(180deg);
+    padding: 20px 20px 16px;
+    align-items: stretch;
+  }
+  .f-head { display:flex; justify-content:space-between; align-items:center; }
+  .rarity {
+    font-size:11px; letter-spacing:2px;
+    padding:3px 10px; border-radius:999px;
+    background:#FFC72C; color:#141010; font-weight:700;
+  }
+  .rarity.r-sr { background:#e8e2d5; }
+  .rarity.r-r { background:#8a7d68; color:#141010; }
+  .rarity.r-n { background:#4a3d30; color:#cbbfa8; }
+  .f-period { font-size:11px; color:#9c8f80; letter-spacing:1px; }
+  .item-name { font-size:25px; font-weight:700; margin:16px 0 6px; text-align:center; letter-spacing:1px; }
+  .item-price { color:#FFC72C; font-size:24px; font-weight:700; text-align:center; }
+  .meme {
+    margin-top:10px; font-size:12.5px; color:#b8a77e; text-align:center;
+    line-height:1.7; font-style:italic; min-height:21px;
+  }
+  .stats {
+    width:100%; margin-top:14px; padding:12px 8px;
+    background:#141010; border-radius:12px;
+    display:grid; grid-template-columns:1fr 1fr 1fr; text-align:center;
+  }
+  .stats > div + div { border-left:1px solid #2e251d; }
+  .stats .v { font-size:16px; font-weight:700; color:#f5f0e8; }
+  .stats .k { font-size:11px; color:#9c8f80; margin-top:3px; }
+  .combo { margin:10px 0 14px; font-size:12px; color:#9c8f80; line-height:1.6; text-align:center; min-height:19px; }
+
+  /* 卡内优惠券（票根） */
+  .ticket {
+    margin-top:auto; border-radius:10px;
+    background: linear-gradient(135deg, #DA291C 0%, #b02015 100%);
+    padding:12px 14px;
+    display:flex; justify-content:space-between; align-items:center;
+    box-shadow: 0 4px 14px rgba(218,41,28,.25);
+  }
+  .ticket .t { font-size:13px; font-weight:700; color:#fff; }
+  .ticket .d { font-size:10px; color:rgba(255,255,255,.7); margin-top:2px; }
+  .ticket .stub {
+    border-left:2px dashed rgba(255,255,255,.45);
+    padding-left:12px; margin-left:12px;
+    color:#FFC72C; font-weight:700; font-size:13px; white-space:nowrap;
+  }
+
+  /* 卡内门店 */
+  .store-line {
+    margin-top:12px; display:flex; align-items:center; gap:10px;
+    background:#141010; border:1px solid #33291f; border-radius:10px;
+    padding:10px 14px;
+  }
+  .store-line .pin { width:14px; height:18px; flex:none; }
+  .store-line .info { flex:1; min-width:0; text-align:left; }
+  .store-line .sname { font-size:13px; font-weight:700; }
+  .store-line .sdist { font-size:11px; color:#9c8f80; margin-top:2px; }
+  .badge { font-size:11px; padding:3px 10px; border-radius:999px; white-space:nowrap; }
+  .badge.open { background:#1e3a24; color:#6fdc8c; }
+  .badge.busy { background:#3a241e; color:#f0a35e; }
+
+  /* ===== 操作区 ===== */
+  .actions { display:flex; gap:14px; margin-top:28px; }
+  .btn {
+    border:none; border-radius:12px; padding:14px 30px;
+    font-size:15px; font-weight:700; cursor:pointer;
+    letter-spacing:1px; transition: transform .15s, box-shadow .15s;
+  }
+  .btn:active { transform: scale(.96); }
+  .btn-primary { background:#FFC72C; color:#141010; box-shadow:0 4px 20px rgba(255,199,44,.35); }
+  .btn-ghost { background:transparent; color:#9c8f80; border:1px solid #4a3d30; }
+  .btn-ghost:hover { color:#f5f0e8; border-color:#9c8f80; }
+  .btn[disabled] { opacity:.4; cursor:not-allowed; box-shadow:none; }
+
+  /* ===== 下单弹窗 ===== */
+  .mask {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.7);
+    align-items:center; justify-content:center; z-index:10;
+  }
+  .mask.show { display:flex; }
+  .modal {
+    width:340px; background:#1f1815; border:1px solid #FFC72C;
+    border-radius:16px; padding:28px 26px;
+  }
+  .modal h3 { font-size:17px; margin-bottom:16px; }
+  .row { display:flex; justify-content:space-between; font-size:13px; padding:7px 0; color:#b3a897; }
+  .row.total { color:#FFC72C; font-weight:700; font-size:16px; border-top:1px dashed #4a3d30; margin-top:8px; padding-top:14px; }
+  .modal .actions { margin-top:20px; }
+  .modal .btn { flex:1; padding:12px 0; font-size:14px; }
+  .payok { text-align:center; }
+  .payok .ok {
+    width:56px; height:56px; margin:0 auto 14px; border-radius:50%;
+    border:3px solid #6fdc8c; color:#6fdc8c; font-size:28px; line-height:50px;
+  }
+  .payok p { font-size:13px; color:#b3a897; line-height:1.8; }
+  .demo-note { margin-top:32px; font-size:11px; color:#5c5347; text-align:center; line-height:1.8; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="index.html">&larr; 返回导航</a>
+  <div class="period" id="periodLabel">麦门时间</div>
+</div>
+
+<div class="stage">
+  <div class="card3d" id="card3d">
+    <div class="face back" id="cardBack">
+      <svg class="mark" viewBox="0 0 100 76" role="img" aria-label="金拱门"><path d="M13 70 V33 C13 13 24 7 31 7 C42 7 50 15 50 31 C50 15 58 7 69 7 C76 7 87 13 87 33 V70" fill="none" stroke="#FFC72C" stroke-width="11" stroke-linejoin="round"/></svg>
+      <div class="hint">点击抽一张</div>
+    </div>
+    <div class="face front">
+      <div class="f-head">
+        <span class="rarity" id="rarity">SSR</span>
+        <span class="f-period" id="fPeriod">--</span>
+      </div>
+      <div class="item-name" id="itemName">--</div>
+      <div class="item-price" id="itemPrice">--</div>
+      <div class="meme" id="meme"></div>
+      <div class="stats">
+        <div><div class="v" id="kcal">--</div><div class="k">热量 kcal</div></div>
+        <div><div class="v" id="protein">--</div><div class="k">蛋白质 g</div></div>
+        <div><div class="v" id="fat">--</div><div class="k">脂肪 g</div></div>
+      </div>
+      <div class="combo" id="combo"></div>
+      <div class="ticket">
+        <div>
+          <div class="t" id="couponName">麦门优惠券</div>
+          <div class="d">已自动领取 · 下单可享</div>
+        </div>
+        <div class="stub" id="couponCount">+1 张</div>
+      </div>
+      <div class="store-line">
+        <svg class="pin" viewBox="0 0 24 28"><path d="M12 1C6.5 1 2 5.5 2 11c0 7.5 10 16 10 16s10-8.5 10-16C22 5.5 17.5 1 12 1z" fill="#FFC72C"/><circle cx="12" cy="11" r="3.5" fill="#141010"/></svg>
+        <div class="info">
+          <div class="sname" id="sName">--</div>
+          <div class="sdist" id="sDist">--</div>
+        </div>
+        <span class="badge open" id="sBadge">营业中</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn btn-primary" id="drawBtn">抽一张</button>
+  <button class="btn btn-ghost" id="orderBtn" disabled>就吃这个</button>
+</div>
+
+<div class="mask" id="mask">
+  <div class="modal" id="modalOrder">
+    <h3>确认这一单</h3>
+    <div class="row"><span id="mItem">--</span><span id="mPrice">--</span></div>
+    <div class="row"><span id="mCoupon">优惠券</span><span id="mCouponVal">--</span></div>
+    <div class="row"><span>取餐门店</span><span id="mStore">--</span></div>
+    <div class="row total"><span>券后合计</span><span id="mTotal">--</span></div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="cancelBtn">再想想</button>
+      <button class="btn btn-primary" id="confirmBtn">确认下单</button>
+    </div>
+  </div>
+  <div class="modal payok" id="modalOk" style="display:none">
+    <div class="ok">&#10003;</div>
+    <h3>订单已生成</h3>
+    <p>真实使用中，此处由 create-order 返回麦当劳官方支付链接。<br>取餐码与订单状态可用 mcd status 随时查询。</p>
+    <div class="actions">
+      <button class="btn btn-primary" id="okBtn" style="width:100%">好的</button>
+    </div>
+  </div>
+</div>
+
+<div class="demo-note">
+  数据为本地 mock · 真实使用由麦当劳 MCP 提供在售菜单 / 实时价格 / 优惠券 / 附近门店<br>
+</div>
+
+<script>
+(function () {
+  // ---------- mock 数据（真实场景来自 query-meals / list-nutrition-foods / available-coupons / query-nearby-stores）----------
+  var MENU = [
+    { name:"巨无霸套餐", price:3350, kcal:1090, protein:32, fat:42, rarity:"SSR",
+      combo:"巨无霸 + 中薯 + 中可乐", meme:"麦门镇店之宝，血统纯正的三层信仰。", meal:["any"] },
+    { name:"麦辣鸡腿堡套餐", price:2950, kcal:980, protein:28, fat:38, rarity:"SR",
+      combo:"麦辣鸡腿堡 + 中薯 + 中可乐", meme:"辣度是麦门信徒的成人礼。", meal:["any"] },
+    { name:"板烧鸡腿堡套餐", price:3100, kcal:920, protein:30, fat:34, rarity:"SR",
+      combo:"板烧鸡腿堡 + 中薯 + 中可乐", meme:"铁板滋滋作响的那一刻，灵魂得到了救赎。", meal:["any"] },
+    { name:"麦乐鸡(10块)", price:2200, kcal:470, protein:26, fat:28, rarity:"R",
+      combo:"", meme:"蘸酱哲学：甜酸党与蒜蓉党的永恒战争。", meal:["any"] },
+    { name:"麦旋风(奥利奥)", price:1450, kcal:340, protein:7, fat:12, rarity:"R",
+      combo:"", meme:"甜品是另一個胃，科學無法解釋。", meal:["any"] },
+    { name:"猪柳蛋麦满分套餐", price:2400, kcal:620, protein:24, fat:26, rarity:"SR",
+      combo:"猪柳蛋麦满分 + 薯饼 + 咖啡", meme:"早起唯一的正当理由。", meal:["breakfast"] },
+    { name:"皮蛋瘦肉粥+油条", price:1500, kcal:380, protein:12, fat:10, rarity:"R",
+      combo:"", meme:"麦门的中式温柔，早上不骗人。", meal:["breakfast"] },
+    { name:"双层深海鳕鱼堡套餐", price:3250, kcal:950, protein:29, fat:36, rarity:"SR",
+      combo:"鳕鱼堡 + 中薯 + 中可乐", meme:"来自深海的神秘力量，周五限定信仰。", meal:["any"] },
+    { name:"那么大鸡排", price:1800, kcal:520, protein:27, fat:30, rarity:"R",
+      combo:"", meme:"比脸大是它的基本素养。", meal:["any","night"] },
+    { name:"麦咖啡·美式(大)", price:1200, kcal:15, protein:1, fat:0, rarity:"N",
+      combo:"", meme:"打工人的液体闹钟。", meal:["any","breakfast"] },
+    { name:"薯条(大)", price:1350, kcal:510, protein:6, fat:24, rarity:"N",
+      combo:"", meme:"咸香酥脆，麦门硬通货。", meal:["any","night"] },
+    { name:"安格斯厚牛堡套餐", price:4500, kcal:1180, protein:40, fat:52, rarity:"SSR",
+      combo:"安格斯厚牛堡 + 中薯 + 中可乐", meme:"厚切牛肉的仪式感，值得一个郑重其事的夜晚。", meal:["any","night"] }
+  ];
+  var COUPONS = [
+    { name:"满30减5 优惠券", cut:500 },
+    { name:"套餐立减3元券", cut:300 },
+    { name:"麦乐鸡第二份半价券", cut:0 },
+    { name:"免费中薯升级券", cut:0 }
+  ];
+  var STORES = [
+    { name:"麦当劳(人民广场店)", dist:"直线 0.4 km · 步行约 6 分钟", open:true },
+    { name:"麦当劳(南京东路店)", dist:"直线 0.9 km · 步行约 13 分钟", open:true },
+    { name:"麦当劳(外滩店)", dist:"直线 1.6 km · 骑车约 8 分钟", open:false }
+  ];
+
+  // ---------- 餐段 ----------
+  function getPeriod() {
+    var h = new Date().getHours() + new Date().getMinutes() / 60;
+    if (h >= 5 && h < 10.5) return { key:"breakfast", label:"早餐时段" };
+    if (h >= 10.5 && h < 14) return { key:"lunch", label:"午餐时段" };
+    if (h >= 14 && h < 17) return { key:"tea", label:"下午茶时段" };
+    if (h >= 17 && h < 21) return { key:"dinner", label:"晚餐时段" };
+    return { key:"night", label:"夜宵时段" };
+  }
+  var period = getPeriod();
+  document.getElementById("periodLabel").textContent = "麦门时间 · " + period.label;
+
+  // ---------- 状态 ----------
+  var drawn = {};
+  var current = null;
+  var currentCoupon = null;
+  var currentStore = null;
+  var flipping = false;
+
+  function pool() {
+    return MENU.filter(function (m) {
+      if (drawn[m.name]) return false;
+      if (period.key === "breakfast") return m.meal.indexOf("breakfast") >= 0;
+      if (period.key === "night") return m.meal.indexOf("night") >= 0 || m.meal.indexOf("any") >= 0;
+      return m.meal.indexOf("any") >= 0;
+    });
+  }
+  function fen(v) { return "¥" + (v / 100).toFixed(2); }
+
+  var card3d = document.getElementById("card3d");
+  var drawBtn = document.getElementById("drawBtn");
+  var orderBtn = document.getElementById("orderBtn");
+
+  function draw() {
+    if (flipping) return;
+    var p = pool();
+    if (p.length === 0) { drawn = {}; p = pool(); }
+    current = p[Math.floor(Math.random() * p.length)];
+    drawn[current.name] = true;
+    currentCoupon = COUPONS[Math.floor(Math.random() * COUPONS.length)];
+
+    // 填卡
+    document.getElementById("fPeriod").textContent = period.label;
+    var rEl = document.getElementById("rarity");
+    rEl.textContent = current.rarity;
+    rEl.className = "rarity r-" + current.rarity.toLowerCase();
+    document.getElementById("itemName").textContent = current.name;
+    document.getElementById("itemPrice").textContent = fen(current.price);
+    document.getElementById("kcal").textContent = current.kcal;
+    document.getElementById("protein").textContent = current.protein;
+    document.getElementById("fat").textContent = current.fat;
+    document.getElementById("meme").textContent = "“" + current.meme + "”";
+    document.getElementById("combo").textContent = current.combo ? ("组成：" + current.combo) : "";
+
+    // 卡内券 + 最近门店（真实场景：auto-bind-coupons 领取结果 / query-nearby-stores 最近营业门店）
+    document.getElementById("couponName").textContent = currentCoupon.name;
+    var openStores = STORES.filter(function (s) { return s.open; });
+    currentStore = openStores[Math.floor(Math.random() * openStores.length)];
+    document.getElementById("sName").textContent = currentStore.name;
+    document.getElementById("sDist").textContent = currentStore.dist;
+
+    flipping = true;
+    if (card3d.classList.contains("flipped")) {
+      card3d.classList.remove("flipped");
+      setTimeout(function () { card3d.classList.add("flipped"); }, 380);
+      setTimeout(function () { flipping = false; }, 1100);
+    } else {
+      card3d.classList.add("flipped");
+      setTimeout(function () { flipping = false; }, 750);
+    }
+
+    orderBtn.disabled = false;
+    drawBtn.textContent = "再抽一张";
+  }
+
+  // ---------- 下单弹窗 ----------
+  var mask = document.getElementById("mask");
+  var modalOrder = document.getElementById("modalOrder");
+  var modalOk = document.getElementById("modalOk");
+
+  orderBtn.addEventListener("click", function () {
+    if (!current) return;
+    var cut = Math.min(currentCoupon.cut, current.price);
+    document.getElementById("mItem").textContent = current.name;
+    document.getElementById("mPrice").textContent = fen(current.price);
+    document.getElementById("mCoupon").textContent = currentCoupon.name;
+    document.getElementById("mCouponVal").textContent = cut > 0 ? ("-" + fen(cut)) : "已使用权益";
+    document.getElementById("mStore").textContent = currentStore.name + " · 到店自提";
+    document.getElementById("mTotal").textContent = fen(current.price - cut);
+    modalOrder.style.display = "block";
+    modalOk.style.display = "none";
+    mask.classList.add("show");
+  });
+  document.getElementById("cancelBtn").addEventListener("click", function () {
+    mask.classList.remove("show");
+  });
+  document.getElementById("confirmBtn").addEventListener("click", function () {
+    modalOrder.style.display = "none";
+    modalOk.style.display = "block";
+  });
+  document.getElementById("okBtn").addEventListener("click", function () {
+    mask.classList.remove("show");
+  });
+
+  drawBtn.addEventListener("click", draw);
+  document.getElementById("cardBack").addEventListener("click", function () {
+    if (!card3d.classList.contains("flipped")) draw();
+  });
+})();
+</script>
+</body>
+</html>

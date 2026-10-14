@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>麦门抽卡机 McGacha · 演示</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #141010;
+    color: #f5f0e8;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  header { text-align:center; padding: 56px 24px 12px; }
+  .logo { width: 80px; height: auto; margin: 0 auto 18px; display: block; }
+  h1 { font-size: 32px; letter-spacing: 2px; }
+  h1 span { color:#FFC72C; }
+  .sub { margin-top:10px; color:#9c8f80; font-size:14px; letter-spacing:1px; }
+  .grid {
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px; width: 100%; max-width: 1080px; padding: 40px 24px;
+  }
+  .card {
+    background: #1f1815;
+    border: 1px solid #33291f;
+    border-radius: 16px;
+    padding: 28px 24px;
+    position: relative;
+    transition: transform .2s, border-color .2s;
+  }
+  .card:hover { transform: translateY(-4px); border-color:#FFC72C; }
+  .num {
+    font-size: 12px; color:#DA291C; font-weight:700; letter-spacing:2px;
+    margin-bottom: 12px;
+  }
+  .card h2 { font-size: 20px; margin-bottom: 10px; }
+  .card p { font-size: 13px; color:#b3a897; line-height: 1.8; }
+  .tag {
+    display:inline-block; margin-top:16px; padding:4px 12px;
+    border-radius: 999px; font-size:12px;
+  }
+  .tag.on { background:#FFC72C; color:#141010; font-weight:700; }
+  .tag.dev { background:#33291f; color:#9c8f80; }
+  a.card { text-decoration:none; color:inherit; display:block; }
+  footer {
+    margin-top:auto; padding: 28px; text-align:center;
+    color:#5c5347; font-size:12px; line-height:1.8;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <svg class="logo" viewBox="0 0 100 76" role="img" aria-label="金拱门"><path d="M13 70 V33 C13 13 24 7 31 7 C42 7 50 15 50 31 C50 15 58 7 69 7 C76 7 87 13 87 33 V70" fill="none" stroke="#FFC72C" stroke-width="11" stroke-linejoin="round"/></svg>
+    <h1>麦门抽卡机 <span>McGacha</span></h1>
+    <div class="sub">抽卡点餐 × 徽章图鉴 × 麦门DNA × 终端下单 · 基于麦当劳 MCP 真实数据</div>
+  </header>
+
+  <main class="grid">
+    <a class="card" href="gacha.html">
+      <div class="num">MODE 01</div>
+      <h2>今日抽卡</h2>
+      <p>今天吃什么？抽一张就知道。按时段从真实在售菜单随机推荐，顺手一键领券，附上附近门店，抽到满意直接下单。</p>
+      <span class="tag on">进入演示</span>
+    </a>
+
+    <div class="card">
+      <div class="num">MODE 02</div>
+      <h2>徽章图鉴 · 年度故事</h2>
+      <p>每一顿麦当劳都是一枚徽章。读取真实历史订单，铸成图鉴，生成「我和麦当劳的年度故事」回顾页。</p>
+      <span class="tag dev">开发中</span>
+    </div>
+
+    <div class="card">
+      <div class="num">MODE 03</div>
+      <h2>麦门DNA</h2>
+      <p>一份关于你和麦当劳的"基因检测报告"，由真实订单与营养数据推算，含血统分析、祖源迁徙、亲缘鉴定、营养风险项。</p>
+      <span class="tag dev">开发中</span>
+    </div>
+
+    <div class="card">
+      <div class="num">MODE 04</div>
+      <h2>终端下单</h2>
+      <p>程序员的仪式感：mcd list 看菜单、mcd draw 抽一张、mcd order 下单，全程键盘，沉浸式 CLI 点餐。</p>
+      <span class="tag dev">开发中</span>
+    </div>
+  </main>
+
+  <footer>
+    麦当劳程序员节创意开发大赛参赛作品<br>
+    演示页数据 mock，真实使用由麦当劳 MCP 实时提供 · 2026 阿菠萝.All rights reserved.
+  </footer>
+</body>
+</html>
