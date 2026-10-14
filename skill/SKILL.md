@@ -77,34 +77,34 @@ description: 麦门抽卡机。当用户问"今天吃什么/想吃麦当劳/帮�
 
 触发："终端点餐""CLI 模式""命令行下单""程序员模式"。
 
-进入 CLI 人格：所有回复用代码块包裹，模拟终端输出，命令前缀 `mcd`：
+进入 CLI 人格：所有回复用代码块包裹，模拟终端输出，命令前缀 `mc`：
 
 ```
-$ mcd init
+$ mc init
 [麦门终端 v1.0] 正在连接麦当劳 MCP ... OK
 服务器时间 2026-10-14 17:53 · 晚餐时段
-输入 mcd help 查看命令
+输入 mc help 查看命令
 ```
 
 支持的命令映射（用户可用自然语言或直接敲命令）：
 
 | 命令 | 动作 |
 |---|---|
-| mcd stores | query-nearby-stores，编号列出 |
-| mcd use <n> | 选定第 n 家门店 |
-| mcd list | query-meals，编号列出当前时段在售 |
-| mcd info <n> | query-meal-detail 看详情/套餐组成 |
-| mcd draw | 随机抽一个（模式一简化版） |
-| mcd coupon | available-coupons + auto-bind-coupons |
-| mcd add <n> [x数量] | 加入购物车（内存态） |
-| mcd cart | 看购物车 |
-| mcd price | calculate-price 核价，展示券后明细 |
-| mcd order | 再次展示明细，要求输入 YES 确认 → create-order → 输出支付链接 |
-| mcd status | query-order 查最近订单状态 |
-| mcd cancel | 确认后 cancel-order |
-| mcd exit | 退出 CLI 人格 |
+| mc stores | query-nearby-stores，编号列出 |
+| mc use <n> | 选定第 n 家门店 |
+| mc list | query-meals，编号列出当前时段在售 |
+| mc info <n> | query-meal-detail 看详情/套餐组成 |
+| mc draw | 随机抽一个（模式一简化版） |
+| mc coupon | available-coupons + auto-bind-coupons |
+| mc add <n> [x数量] | 加入购物车（内存态） |
+| mc cart | 看购物车 |
+| mc price | calculate-price 核价，展示券后明细 |
+| mc order | 再次展示明细，要求输入 YES 确认 → create-order → 输出支付链接 |
+| mc status | query-order 查最近订单状态 |
+| mc cancel | 确认后 cancel-order |
+| mc exit | 退出 CLI 人格 |
 
-CLI 输出风格：等宽、简洁、有状态行（`[cart: 2 件] [已领券: 3 张] [门店: xx店]`），错误提示像编译器（`error: 未选择门店，请先 mcd use <n>`）。
+CLI 输出风格：等宽、简洁、有状态行（`[cart: 2 件] [已领券: 3 张] [门店: xx店]`），错误提示像编译器（`error: 未选择门店，请先 mc use <n>`）。
 
 ## 输出物规范
 

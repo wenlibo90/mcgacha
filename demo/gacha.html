@@ -17,8 +17,15 @@
     width:100%; max-width: 960px; padding: 20px 24px;
     display:flex; justify-content:space-between; align-items:center;
   }
-  .back { color:#9c8f80; text-decoration:none; font-size:13px; }
-  .back:hover { color:#FFC72C; }
+  .back {
+    display:inline-flex; align-items:center; gap:6px;
+    color:#9c8f80; text-decoration:none; font-size:13px;
+    padding:7px 16px 7px 12px; border:1px solid #33291f; border-radius:999px;
+    background:#1f1815; transition:color .2s, border-color .2s;
+  }
+  .back svg { transition:transform .2s; }
+  .back:hover { color:#FFC72C; border-color:#FFC72C; }
+  .back:hover svg { transform:translateX(-3px); }
   .period {
     font-size:12px; padding:5px 14px; border-radius:999px;
     background:#33291f; color:#FFC72C; letter-spacing:1px;
@@ -148,7 +155,7 @@
 <body>
 
 <div class="topbar">
-  <a class="back" href="index.html">&larr; 返回导航</a>
+  <a class="back" href="index.html"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>返回导航</a>
   <div class="period" id="periodLabel">麦门时间</div>
 </div>
 
@@ -211,7 +218,7 @@
   <div class="modal payok" id="modalOk" style="display:none">
     <div class="ok">&#10003;</div>
     <h3>订单已生成</h3>
-    <p>真实使用中，此处由 create-order 返回麦当劳官方支付链接。<br>取餐码与订单状态可用 mcd status 随时查询。</p>
+    <p>真实使用中，此处由 create-order 返回麦当劳官方支付链接。<br>取餐码与订单状态可用 mc status 随时查询。</p>
     <div class="actions">
       <button class="btn btn-primary" id="okBtn" style="width:100%">好的</button>
     </div>

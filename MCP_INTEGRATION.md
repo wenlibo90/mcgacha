@@ -55,12 +55,12 @@
 | 调用顺序 | Tool | 用途 |
 |---|---|---|
 | 1 | now-time-info | CLI 启动横幅显示麦门时间 |
-| 2 | query-nearby-stores | `mcd stores` 列出门店供选择 |
-| 3 | query-meals / query-meal-detail | `mcd list` / `mcd info <id>` 浏览菜单与套餐详情 |
-| 4 | available-coupons / auto-bind-coupons | `mcd coupon` 领券 |
-| 5 | calculate-price | `mcd price` 核价（券后价明细） |
-| 6 | create-order | `mcd order` 下单（需用户在 CLI 内输入 YES 确认） |
-| 7 | query-order / cancel-order | `mcd status` 查单 / `mcd cancel` 取消 |
+| 2 | query-nearby-stores | `mc stores` 列出门店供选择 |
+| 3 | query-meals / query-meal-detail | `mc list` / `mc info <id>` 浏览菜单与套餐详情 |
+| 4 | available-coupons / auto-bind-coupons | `mc coupon` 领券 |
+| 5 | calculate-price | `mc price` 核价（券后价明细） |
+| 6 | create-order | `mc order` 下单（需用户在 CLI 内输入 YES 确认） |
+| 7 | query-order / cancel-order | `mc status` 查单 / `mc cancel` 取消 |
 
 ## 三、关键调用流程（以抽卡下单为例）
 

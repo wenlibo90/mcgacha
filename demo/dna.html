@@ -12,8 +12,15 @@
     display:flex; flex-direction:column; align-items:center;
   }
   .topbar { width:100%; max-width:760px; padding:20px 24px; display:flex; justify-content:space-between; align-items:center; }
-  .back { color:#9c8f80; text-decoration:none; font-size:13px; }
-  .back:hover { color:#FFC72C; }
+  .back {
+    display:inline-flex; align-items:center; gap:6px;
+    color:#9c8f80; text-decoration:none; font-size:13px;
+    padding:7px 16px 7px 12px; border:1px solid #33291f; border-radius:999px;
+    background:#1f1815; transition:color .2s, border-color .2s;
+  }
+  .back svg { transition:transform .2s; }
+  .back:hover { color:#FFC72C; border-color:#FFC72C; }
+  .back:hover svg { transform:translateX(-3px); }
   .rno { font-size:11px; color:#5c5347; letter-spacing:1px; }
   .report {
     width:100%; max-width:760px; margin:8px 24px 40px;
@@ -99,7 +106,7 @@
 <body>
 
 <div class="topbar">
-  <a class="back" href="index.html">&larr; 返回导航</a>
+  <a class="back" href="index.html"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>返回导航</a>
   <div class="rno">报告编号 MCD-DNA-2026-1014 · 演示数据</div>
 </div>
 
@@ -181,7 +188,7 @@
   </section>
 
   <div class="r-foot">
-    本报告由麦门抽卡机基于麦当劳 MCP 数据生成，仅供娱乐，不构成医疗/营养专业建议。<br>
+    本报告由麦门抽卡机基于麦当劳 MCP 数据生成，不构成医疗/营养专业建议。<br>
     餐品与价格以麦当劳官方渠道实时信息为准 · 演示页数据为 mock
   </div>
 </div>
