@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>徽章图鉴 · 麦门年度故事 · 麦门抽卡机 McGacha</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #141010; color:#f5f0e8; min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .topbar { width:100%; max-width:820px; padding:20px 24px; display:flex; justify-content:space-between; align-items:center; }
+  .back { color:#9c8f80; text-decoration:none; font-size:13px; }
+  .back:hover { color:#FFC72C; }
+  .year { font-size:11px; color:#5c5347; letter-spacing:2px; }
+  .wrap { width:100%; max-width:820px; padding:8px 24px 48px; }
+  .hero { text-align:center; padding:20px 0 8px; }
+  .hero h1 { font-size:28px; letter-spacing:2px; }
+  .hero h1 span { color:#FFC72C; }
+  .hero .sub { color:#9c8f80; font-size:13px; margin-top:10px; }
+
+  .overview {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin:28px 0 8px;
+  }
+  .ov { background:#1f1815; border:1px solid #33291f; border-radius:14px; padding:18px 14px; text-align:center; }
+  .ov .v { font-size:20px; font-weight:700; color:#FFC72C; }
+  .ov .k { font-size:11px; color:#9c8f80; margin-top:6px; }
+
+  h2.sec { font-size:16px; letter-spacing:2px; margin:36px 0 6px; }
+  .sec-sub { font-size:12px; color:#5c5347; margin-bottom:18px; }
+
+  /* 徽章墙 */
+  .wall { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; }
+  .bdg {
+    background:#1f1815; border:1px solid #33291f; border-radius:16px;
+    padding:18px 10px 14px; text-align:center;
+  }
+  .coin {
+    width:64px; height:64px; margin:0 auto 10px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; font-weight:700; color:#141010;
+    background:#4a3d30; color:#7a6f60; border:3px solid #33291f;
+  }
+  .bdg.lit .coin { background:#8a7d68; color:#141010; border-color:#a99b83; }
+  .bdg.silver .coin { background:#c9c9c9; border-color:#e8e8e8; }
+  .bdg.gold .coin { background:#FFC72C; border-color:#ffe9a8; box-shadow:0 0 14px rgba(255,199,44,.35); }
+  .bdg.legend .coin {
+    background:linear-gradient(135deg,#FFC72C,#DA291C);
+    border-color:#FFC72C; color:#fff; box-shadow:0 0 18px rgba(218,41,28,.5);
+  }
+  .bdg .nm { font-size:13px; font-weight:700; }
+  .bdg .ct { font-size:11px; color:#9c8f80; margin-top:4px; }
+  .bdg.dim { opacity:.45; }
+  .bdg.dim .nm { color:#7a6f60; }
+  .progress { margin-top:18px; }
+  .progress .bar { height:8px; background:#1f1815; border-radius:99px; overflow:hidden; }
+  .progress .bar i { display:block; height:100%; width:67%; background:linear-gradient(90deg,#DA291C,#FFC72C); border-radius:99px; }
+  .progress .txt { font-size:12px; color:#9c8f80; margin-top:8px; text-align:center; }
+
+  /* 成就 */
+  .achv { display:flex; flex-wrap:wrap; gap:10px; }
+  .achv .a {
+    font-size:12px; padding:8px 16px; border-radius:999px; border:1px solid #33291f;
+  }
+  .achv .a.on { background:#33291f; color:#FFC72C; border-color:#FFC72C; }
+  .achv .a.off { color:#5c5347; }
+
+  /* 时间线 */
+  .tl { position:relative; padding-left:26px; margin-top:8px; }
+  .tl::before { content:""; position:absolute; left:7px; top:8px; bottom:8px; width:2px; background:#33291f; }
+  .ev { position:relative; padding:12px 0 12px 14px; }
+  .ev::before {
+    content:""; position:absolute; left:-26px; top:16px;
+    width:12px; height:12px; border-radius:50%;
+    background:#141010; border:3px solid #DA291C;
+  }
+  .ev .t { font-size:11px; color:#9c8f80; letter-spacing:1px; }
+  .ev .h { font-size:15px; font-weight:700; margin-top:3px; }
+  .ev .d { font-size:12px; color:#b3a897; margin-top:4px; line-height:1.7; }
+
+  .foot { margin-top:40px; font-size:11px; color:#5c5347; line-height:1.9; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="index.html">&larr; 返回导航</a>
+  <div class="year">MCD STORY · 2026 · 演示数据</div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>我和麦当劳的<span>年度故事</span></h1>
+    <div class="sub">每一顿，都是一枚徽章</div>
+  </div>
+
+  <div class="overview">
+    <div class="ov"><div class="v">47 单</div><div class="k">年度订单</div></div>
+    <div class="ov"><div class="v">¥1,283</div><div class="k">年度消费</div></div>
+    <div class="ov"><div class="v">巨无霸</div><div class="k">年度最爱</div></div>
+    <div class="ov"><div class="v">9 次</div><div class="k">深夜食堂</div></div>
+  </div>
+
+  <h2 class="sec">徽章图鉴</h2>
+  <div class="sec-sub">吃过 1 次点亮 · 5 次银色 · 15 次金色 · 30 次传说</div>
+  <div class="wall">
+    <div class="bdg legend"><div class="coin">薯</div><div class="nm">薯条</div><div class="ct">传说 · 32 次</div></div>
+    <div class="bdg gold"><div class="coin">霸</div><div class="nm">巨无霸</div><div class="ct">金色 · 18 次</div></div>
+    <div class="bdg silver"><div class="coin">旋</div><div class="nm">麦旋风</div><div class="ct">银色 · 9 次</div></div>
+    <div class="bdg silver"><div class="coin">辣</div><div class="nm">麦辣鸡腿堡</div><div class="ct">银色 · 7 次</div></div>
+    <div class="bdg silver"><div class="coin">咖</div><div class="nm">麦咖啡</div><div class="ct">银色 · 6 次</div></div>
+    <div class="bdg lit"><div class="coin">板</div><div class="nm">板烧鸡腿堡</div><div class="ct">已点亮 · 3 次</div></div>
+    <div class="bdg lit"><div class="coin">乐</div><div class="nm">麦乐鸡</div><div class="ct">已点亮 · 2 次</div></div>
+    <div class="bdg lit"><div class="coin">满</div><div class="nm">猪柳蛋麦满分</div><div class="ct">已点亮 · 1 次</div></div>
+    <div class="bdg dim"><div class="coin">?</div><div class="nm">安格斯厚牛堡</div><div class="ct">未点亮</div></div>
+    <div class="bdg dim"><div class="coin">?</div><div class="nm">深海鳕鱼堡</div><div class="ct">未点亮</div></div>
+    <div class="bdg dim"><div class="coin">?</div><div class="nm">那么大鸡排</div><div class="ct">未点亮</div></div>
+    <div class="bdg dim"><div class="coin">?</div><div class="nm">脆薯格</div><div class="ct">未点亮</div></div>
+  </div>
+  <div class="progress">
+    <div class="bar"><i></i></div>
+    <div class="txt">已点亮 8 / 12 · 图鉴收集率 67%</div>
+  </div>
+
+  <h2 class="sec">成就</h2>
+  <div class="sec-sub">达成 3 / 4</div>
+  <div class="achv">
+    <span class="a on">早餐达人 · 早餐单≥10</span>
+    <span class="a on">深夜食堂 · 夜宵单≥5</span>
+    <span class="a on">用券能手 · 年省 ¥126</span>
+    <span class="a off">全图鉴猎人 · 点亮全部徽章</span>
+  </div>
+
+  <h2 class="sec">年度时间线</h2>
+  <div class="sec-sub">由 47 笔真实订单串成（演示数据）</div>
+  <div class="tl">
+    <div class="ev"><div class="t">2026.01.12</div><div class="h">第一次相遇 · 大学城店</div><div class="d">年度第一单：猪柳蛋麦满分套餐。新年的麦门籍，从一份早餐开始。</div></div>
+    <div class="ev"><div class="t">全年</div><div class="h">年度最爱 · 巨无霸</div><div class="d">点了 18 次，占全年 38%。三层信仰，血统纯正。</div></div>
+    <div class="ev"><div class="t">全年</div><div class="h">深夜食堂 · 9 次</div><div class="d">最晚一单 02:37，一份薯条一杯美式，陪 bug 到天亮。</div></div>
+    <div class="ev"><div class="t">2026.05</div><div class="h">麦门大事件 · 金粉节</div><div class="d">活动期间下了 6 单，你参与了今年最热闹的麦门盛事。</div></div>
+    <div class="ev"><div class="t">至今</div><div class="h">积分资历 · 金卡 2,340 分</div><div class="d">再攒 660 分，就能兑换限量周边了。</div></div>
+  </div>
+
+  <div class="foot">
+    本页由麦门抽卡机基于麦当劳 MCP 数据生成，仅供娱乐 · 演示页数据为 mock<br>
+    餐品与价格以麦当劳官方渠道实时信息为准
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>麦门DNA · 麦门抽卡机 McGacha</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #141010; color:#f5f0e8; min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .topbar { width:100%; max-width:760px; padding:20px 24px; display:flex; justify-content:space-between; align-items:center; }
+  .back { color:#9c8f80; text-decoration:none; font-size:13px; }
+  .back:hover { color:#FFC72C; }
+  .rno { font-size:11px; color:#5c5347; letter-spacing:1px; }
+  .report {
+    width:100%; max-width:760px; margin:8px 24px 40px;
+    background:#1f1815; border:1px solid #33291f; border-radius:20px;
+    padding:40px 36px;
+  }
+  .r-head { text-align:center; padding-bottom:28px; border-bottom:1px dashed #4a3d30; }
+  .r-head .mark { width:64px; height:auto; margin-bottom:14px; }
+  .r-head h1 { font-size:28px; letter-spacing:2px; }
+  .r-head h1 span { color:#FFC72C; }
+  .r-head .en { color:#9c8f80; font-size:12px; letter-spacing:3px; margin-top:8px; }
+  section { margin-top:34px; }
+  .sec-title { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .sec-title .no {
+    width:24px; height:24px; border-radius:8px; flex:none;
+    background:#DA291C; color:#fff; font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .sec-title h2 { font-size:17px; letter-spacing:1px; }
+  .sec-title .sub { font-size:11px; color:#5c5347; margin-left:auto; }
+
+  /* 血统成分 */
+  .dna-wrap { display:flex; gap:28px; align-items:center; flex-wrap:wrap; }
+  .donut { width:190px; height:190px; flex:none; }
+  .legend { flex:1; min-width:220px; }
+  .lg-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #2a211a; font-size:13px; }
+  .lg-row:last-child { border-bottom:none; }
+  .dot { width:10px; height:10px; border-radius:3px; flex:none; }
+  .lg-row .pct { margin-left:auto; color:#FFC72C; font-weight:700; }
+
+  /* 迁徙路线 */
+  .route { position:relative; padding-left:26px; }
+  .route::before { content:""; position:absolute; left:7px; top:8px; bottom:8px; width:2px; background:#33291f; }
+  .stop { position:relative; padding:10px 0 10px 14px; }
+  .stop::before {
+    content:""; position:absolute; left:-26px; top:14px;
+    width:12px; height:12px; border-radius:50%;
+    background:#141010; border:3px solid #FFC72C;
+  }
+  .stop:first-child::before { background:#FFC72C; }
+  .stop .when { font-size:11px; color:#9c8f80; letter-spacing:1px; }
+  .stop .where { font-size:14px; font-weight:700; margin-top:3px; }
+  .stop .note { font-size:12px; color:#b3a897; margin-top:2px; }
+
+  /* 营养风险 */
+  .risk { display:flex; flex-direction:column; gap:12px; }
+  .risk-row { display:flex; align-items:center; gap:14px; font-size:13px; }
+  .risk-row .k { width:110px; flex:none; color:#b3a897; }
+  .risk-row .bar { flex:1; height:8px; background:#141010; border-radius:99px; overflow:hidden; }
+  .risk-row .bar i { display:block; height:100%; border-radius:99px; }
+  .light { width:64px; flex:none; text-align:center; font-size:11px; padding:3px 0; border-radius:999px; font-weight:700; }
+  .light.g { background:#1e3a24; color:#6fdc8c; }
+  .light.y { background:#3a331e; color:#f0d35e; }
+  .light.r { background:#3a241e; color:#f48771; }
+
+  /* 资历 */
+  .cred { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; }
+  .cred .c { background:#141010; border:1px solid #2e251d; border-radius:14px; padding:18px 14px; text-align:center; }
+  .cred .v { font-size:22px; font-weight:700; color:#FFC72C; }
+  .cred .k { font-size:11px; color:#9c8f80; margin-top:6px; }
+
+  /* 亲缘鉴定 */
+  .kin { background:#141010; border:1px solid #2e251d; border-radius:14px; padding:22px; }
+  .kin p { font-size:12px; color:#9c8f80; line-height:1.8; margin-bottom:16px; }
+  .kin .fields { display:flex; gap:12px; flex-wrap:wrap; }
+  .kin input {
+    flex:1; min-width:140px; background:#1f1815; border:1px solid #4a3d30;
+    border-radius:10px; padding:12px 14px; color:#f5f0e8; font-size:14px; outline:none;
+  }
+  .kin input:focus { border-color:#FFC72C; }
+  .kin button {
+    background:#FFC72C; color:#141010; border:none; border-radius:10px;
+    padding:12px 24px; font-size:14px; font-weight:700; cursor:pointer;
+  }
+  .kin-result { display:none; margin-top:18px; text-align:center; padding:18px; border:1px dashed #4a3d30; border-radius:12px; }
+  .kin-result.show { display:block; }
+  .kin-result .score { font-size:34px; font-weight:700; color:#FFC72C; }
+  .kin-result .verdict { font-size:14px; margin-top:8px; color:#ffe9a8; }
+
+  .r-foot { margin-top:36px; padding-top:20px; border-top:1px dashed #4a3d30; font-size:11px; color:#5c5347; line-height:1.9; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="index.html">&larr; 返回导航</a>
+  <div class="rno">报告编号 MCD-DNA-2026-1014 · 演示数据</div>
+</div>
+
+<div class="report">
+  <div class="r-head">
+    <svg class="mark" viewBox="0 0 100 76"><path d="M13 70 V33 C13 13 24 7 31 7 C42 7 50 15 50 31 C50 15 58 7 69 7 C76 7 87 13 87 33 V70" fill="none" stroke="#FFC72C" stroke-width="11" stroke-linejoin="round"/></svg>
+    <h1>麦门<span>DNA</span></h1>
+    <div class="en">McDONALD'S DNA REPORT</div>
+  </div>
+
+  <section>
+    <div class="sec-title"><div class="no">1</div><h2>血统成分分析</h2><div class="sub">由 87 笔真实订单推算 · 演示</div></div>
+    <div class="dna-wrap">
+      <svg class="donut" viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="70" fill="none" stroke="#141010" stroke-width="34"/>
+        <circle cx="100" cy="100" r="70" fill="none" stroke="#FFC72C" stroke-width="34" stroke-dasharray="140.7 439.8" stroke-dashoffset="0" transform="rotate(-90 100 100)"/>
+        <circle cx="100" cy="100" r="70" fill="none" stroke="#DA291C" stroke-width="34" stroke-dasharray="105.6 439.8" stroke-dashoffset="-140.7" transform="rotate(-90 100 100)"/>
+        <circle cx="100" cy="100" r="70" fill="none" stroke="#f0a35e" stroke-width="34" stroke-dasharray="79.2 439.8" stroke-dashoffset="-246.3" transform="rotate(-90 100 100)"/>
+        <circle cx="100" cy="100" r="70" fill="none" stroke="#8a7d68" stroke-width="34" stroke-dasharray="61.6 439.8" stroke-dashoffset="-325.5" transform="rotate(-90 100 100)"/>
+        <circle cx="100" cy="100" r="70" fill="none" stroke="#6fdc8c" stroke-width="34" stroke-dasharray="52.8 439.8" stroke-dashoffset="-387.1" transform="rotate(-90 100 100)"/>
+        <text x="100" y="96" text-anchor="middle" fill="#f5f0e8" font-size="15" font-weight="700">麦门血统</text>
+        <text x="100" y="116" text-anchor="middle" fill="#9c8f80" font-size="10">纯度 96%</text>
+      </svg>
+      <div class="legend">
+        <div class="lg-row"><span class="dot" style="background:#FFC72C"></span>板烧血统<span class="pct">32%</span></div>
+        <div class="lg-row"><span class="dot" style="background:#DA291C"></span>炸物基因<span class="pct">24%</span></div>
+        <div class="lg-row"><span class="dot" style="background:#f0a35e"></span>穷鬼基因<span class="pct">18%</span></div>
+        <div class="lg-row"><span class="dot" style="background:#8a7d68"></span>咖啡因依赖<span class="pct">14%</span></div>
+        <div class="lg-row"><span class="dot" style="background:#6fdc8c"></span>甜品隐性基因<span class="pct">12%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-title"><div class="no">2</div><h2>祖源迁徙路线</h2><div class="sub">历年取餐门店足迹</div></div>
+    <div class="route">
+      <div class="stop"><div class="when">2023.03 · 第 1 站</div><div class="where">麦当劳(大学城店)</div><div class="note">初见。第一份猪柳蛋麦满分，麦门籍自此建立。</div></div>
+      <div class="stop"><div class="when">2023.11 · 第 2 站</div><div class="where">麦当劳(软件园店)</div><div class="note">加班据点，深夜订单高发区。</div></div>
+      <div class="stop"><div class="when">2024.06 · 第 3 站</div><div class="where">麦当劳(人民广场店)</div><div class="note">常驻地，全年 41% 订单发生于此。</div></div>
+      <div class="stop"><div class="when">2025.02 · 第 4 站</div><div class="where">麦当劳(虹桥枢纽店)</div><div class="note">出差驿站，赶高铁前的固定仪式。</div></div>
+      <div class="stop"><div class="when">2026.08 · 第 5 站</div><div class="where">麦当劳(南京东路店)</div><div class="note">现居地，故事仍在续写。</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-title"><div class="no">3</div><h2>营养健康风险项</h2><div class="sub">基于真实营养成分 · 平均每餐</div></div>
+    <div class="risk">
+      <div class="risk-row"><span class="k">热量 980 kcal</span><span class="bar"><i style="width:62%;background:#f0d35e"></i></span><span class="light y">黄灯</span></div>
+      <div class="risk-row"><span class="k">脂肪 38 g</span><span class="bar"><i style="width:58%;background:#f0d35e"></i></span><span class="light y">黄灯</span></div>
+      <div class="risk-row"><span class="k">钠 1420 mg</span><span class="bar"><i style="width:81%;background:#f48771"></i></span><span class="light r">红灯</span></div>
+      <div class="risk-row"><span class="k">蛋白质 31 g</span><span class="bar"><i style="width:45%;background:#6fdc8c"></i></span><span class="light g">绿灯</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-title"><div class="no">4</div><h2>麦门资历</h2></div>
+    <div class="cred">
+      <div class="c"><div class="v">3.2 年</div><div class="k">麦门龄</div></div>
+      <div class="c"><div class="v">87 单</div><div class="k">累计订单</div></div>
+      <div class="c"><div class="v">金卡</div><div class="k">会员等级</div></div>
+      <div class="c"><div class="v">2,340</div><div class="k">当前积分</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-title"><div class="no">5</div><h2>麦门亲缘鉴定</h2><div class="sub">输入好友数据，测一测亲缘</div></div>
+    <div class="kin">
+      <p>让好友生成TA的麦门DNA报告，把两个数字填进来（只需要这两个数字，不涉及任何隐私数据）：</p>
+      <div class="fields">
+        <input id="kinPct" type="number" min="0" max="100" placeholder="好友血统TOP1占比 %（如 40）">
+        <input id="kinAge" type="number" min="0" max="30" step="0.1" placeholder="好友麦门龄 年（如 2.5）">
+        <button id="kinBtn">开始鉴定</button>
+      </div>
+      <div class="kin-result" id="kinResult">
+        <div class="score" id="kinScore">--</div>
+        <div class="verdict" id="kinVerdict">--</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="r-foot">
+    本报告由麦门抽卡机基于麦当劳 MCP 数据生成，仅供娱乐，不构成医疗/营养专业建议。<br>
+    餐品与价格以麦当劳官方渠道实时信息为准 · 演示页数据为 mock
+  </div>
+</div>
+
+<script>
+(function () {
+  // 本人基线（演示数据）：血统TOP1=板烧32%，麦门龄3.2年
+  var MY_PCT = 32, MY_AGE = 3.2;
+  document.getElementById("kinBtn").addEventListener("click", function () {
+    var p = parseFloat(document.getElementById("kinPct").value);
+    var a = parseFloat(document.getElementById("kinAge").value);
+    if (isNaN(p) || isNaN(a)) { alert("先把好友的两个数字填上"); return; }
+    var sim = 100 - Math.abs(p - MY_PCT) * 1.2 - Math.abs(a - MY_AGE) * 8;
+    sim = Math.max(3, Math.min(99, Math.round(sim)));
+    var verdict;
+    if (sim >= 90) verdict = "鉴定结论：失散多年的麦门亲兄弟";
+    else if (sim >= 70) verdict = "鉴定结论：麦门表亲，约饭契合度极高";
+    else if (sim >= 50) verdict = "鉴定结论：同门师兄弟，可约";
+    else verdict = "鉴定结论：麦门路人，建议多吃几顿培养感情";
+    document.getElementById("kinScore").textContent = sim + "%";
+    document.getElementById("kinVerdict").textContent = verdict;
+    document.getElementById("kinResult").classList.add("show");
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>终端下单 · 麦门抽卡机 McGacha</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    background:#0d0b0a; color:#f5f0e8; min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .topbar { width:100%; max-width:860px; padding:20px 24px 12px; display:flex; justify-content:space-between; align-items:center; }
+  .back { color:#9c8f80; text-decoration:none; font-size:13px; }
+  .back:hover { color:#FFC72C; }
+  .hint { font-size:11px; color:#5c5347; }
+  .term {
+    width:100%; max-width:860px; margin:0 24px 40px;
+    background:#1e1e1e; border:1px solid #333; border-radius:12px; overflow:hidden;
+    box-shadow:0 18px 50px rgba(0,0,0,.55);
+  }
+  .term-bar { background:#2d2d2d; padding:10px 14px; display:flex; align-items:center; gap:8px; }
+  .term-bar .d { width:12px; height:12px; border-radius:50%; }
+  .term-bar .d1 { background:#ff5f57; } .term-bar .d2 { background:#febc2e; } .term-bar .d3 { background:#28c840; }
+  .term-bar .t { margin-left:10px; font-size:12px; color:#9a9a9a; }
+  .term-body {
+    height:520px; overflow-y:auto; padding:16px 18px;
+    font-family: Consolas, "Courier New", monospace; font-size:13.5px; line-height:1.75;
+    cursor:text;
+  }
+  .term-body::-webkit-scrollbar { width:8px; }
+  .term-body::-webkit-scrollbar-thumb { background:#3a3a3a; border-radius:4px; }
+  .ln { white-space:pre-wrap; word-break:break-all; color:#d4d4d4; }
+  .ln.dim { color:#808080; }
+  .ln.y { color:#FFC72C; }
+  .ln.g { color:#6fdc8c; }
+  .ln.r { color:#f48771; }
+  .ln.c { color:#4ec9b0; }
+  .echo { color:#d4d4d4; }
+  .echo .p { color:#6fdc8c; }
+  .inrow { display:flex; align-items:center; gap:8px; }
+  .inrow .p { color:#6fdc8c; flex:none; }
+  .inrow input {
+    flex:1; background:transparent; border:none; outline:none;
+    color:#d4d4d4; font-family:inherit; font-size:inherit; caret-color:#FFC72C;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="index.html">&larr; 返回导航</a>
+  <div class="hint">沉浸式 CLI 点餐 · 演示模式（本地 mock，真实使用由麦当劳 MCP 提供）</div>
+</div>
+
+<div class="term">
+  <div class="term-bar">
+    <span class="d d1"></span><span class="d d2"></span><span class="d d3"></span>
+    <span class="t">mcd — zsh — 麦门终端 v1.0</span>
+  </div>
+  <div class="term-body" id="term">
+    <div class="inrow">
+      <span class="p">➜ mcd $</span>
+      <input id="cmd" autocomplete="off" spellcheck="false">
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var term = document.getElementById("term");
+  var input = document.getElementById("cmd");
+
+  // ---------- mock 数据（真实场景来自麦当劳 MCP） ----------
+  var STORES = [
+    { name: "麦当劳(人民广场店)", dist: "350m", open: true },
+    { name: "麦当劳(南京东路店)", dist: "800m", open: true },
+    { name: "麦当劳(外滩店)", dist: "1.2km", open: false }
+  ];
+  var MENU = [
+    { name: "巨无霸套餐", price: 3350, kcal: 1090 },
+    { name: "麦辣鸡腿堡套餐", price: 2950, kcal: 890 },
+    { name: "板烧鸡腿堡套餐", price: 3150, kcal: 830 },
+    { name: "麦乐鸡(10块)", price: 2200, kcal: 420 },
+    { name: "麦旋风(奥利奥)", price: 1450, kcal: 340 },
+    { name: "薯条(大)", price: 1350, kcal: 400 },
+    { name: "美式咖啡(大)", price: 1200, kcal: 10 }
+  ];
+  var COUPONS = [
+    { name: "满30减5", cut: 500 },
+    { name: "套餐立减3元", cut: 300 }
+  ];
+
+  // ---------- 状态 ----------
+  var store = null, claimed = false, coupon = null, cart = [], pending = false, lastOrder = null;
+
+  function yuan(fen) { return "¥" + (fen / 100).toFixed(2); }
+
+  function print(text, cls) {
+    var inrow = term.querySelector(".inrow");
+    String(text).split("\n").forEach(function (s) {
+      var d = document.createElement("div");
+      d.className = "ln" + (cls ? " " + cls : "");
+      d.textContent = s;
+      term.insertBefore(d, inrow);
+    });
+    term.scrollTop = term.scrollHeight;
+  }
+  function echo(cmdText) {
+    var inrow = term.querySelector(".inrow");
+    var d = document.createElement("div");
+    d.className = "echo";
+    d.innerHTML = '<span class="p">➜ mcd $</span> ';
+    d.appendChild(document.createTextNode(cmdText));
+    term.insertBefore(d, inrow);
+  }
+
+  var HELP = [
+    "mcd init              初始化/查看状态",
+    "mcd stores            查询附近门店（query-nearby-stores）",
+    "mcd use <序号>        选择门店",
+    "mcd list              查看在售菜单（query-meals）",
+    "mcd draw              抽一张麦门卡牌（随机推荐）",
+    "mcd coupon            一键领券（available-coupons + auto-bind-coupons）",
+    "mcd add <序号> [数量] 加入购物车",
+    "mcd cart              查看购物车",
+    "mcd price             券后核价（calculate-price）",
+    "mcd order             下单（create-order，需输入 YES 确认）",
+    "mcd status            查询订单状态（query-order）",
+    "mcd clear             清屏"
+  ];
+
+  function bestCoupon(subtotal) {
+    if (!claimed) return null;
+    var ok = COUPONS.filter(function (c) { return subtotal >= 3000 || c.cut < 500; });
+    return ok.length ? ok[0] : null;
+  }
+
+  function subtotal() {
+    return cart.reduce(function (s, it) { return s + it.price * it.qty; }, 0);
+  }
+
+  var CMDS = {
+    init: function () {
+      print("[麦门终端 v1.0] 已连接麦当劳 MCP（演示模式·本地 mock）", "y");
+      print("服务器时间 2026-10-14 17:53 · 晚餐时段（now-time-info）");
+      print("输入 mcd help 查看命令", "dim");
+    },
+    help: function () { print(HELP.join("\n")); },
+    stores: function () {
+      print("附近门店（query-nearby-stores）：", "c");
+      STORES.forEach(function (s, i) {
+        print("  [" + (i + 1) + "] " + s.name + "  " + s.dist + "  " + (s.open ? "营业中" : "休息中"),
+          s.open ? "" : "dim");
+      });
+      print("输入 mcd use <序号> 选择门店", "dim");
+    },
+    use: function (n) {
+      var s = STORES[(+n || 0) - 1];
+      if (!s) return print("用法：mcd use <序号>（先看 mcd stores）", "r");
+      if (!s.open) return print(s.name + " 当前休息中，换一家吧", "r");
+      store = s;
+      print("已选门店：" + s.name + "（" + s.dist + "）", "g");
+    },
+    list: function () {
+      if (!store) return print("请先选门店：mcd stores → mcd use <序号>", "r");
+      print("在售菜单（query-meals · 晚餐时段）：", "c");
+      MENU.forEach(function (m, i) {
+        print("  [" + (i + 1) + "] " + m.name + "  " + yuan(m.price) + "  " + m.kcal + "kcal");
+      });
+    },
+    draw: function () {
+      if (!store) return print("请先选门店：mcd stores → mcd use <序号>", "r");
+      var i = Math.floor(Math.random() * MENU.length);
+      var m = MENU[i];
+      print("┌─────────────── 麦门卡牌 ───────────────┐", "y");
+      print("  你抽到了：" + m.name, "y");
+      print("  " + yuan(m.price) + " · " + m.kcal + "kcal", "y");
+      print("└────────────────────────────────────────┘", "y");
+      print("就是它？输入 mcd add " + (i + 1) + " 加购；不服再抽：mcd draw", "dim");
+    },
+    coupon: function () {
+      claimed = true;
+      print("已领取 2 张可用券（available-coupons + auto-bind-coupons）：", "g");
+      COUPONS.forEach(function (c, i) { print("  [" + (i + 1) + "] " + c.name); });
+      print("核价时将自动使用最优一张", "dim");
+    },
+    add: function (n, q) {
+      var m = MENU[(+n || 0) - 1];
+      if (!m) return print("用法：mcd add <菜单序号> [数量]", "r");
+      var qty = Math.max(1, +q || 1);
+      cart.push({ name: m.name, price: m.price, qty: qty });
+      print("已加购：" + m.name + " × " + qty, "g");
+    },
+    cart: function () {
+      if (!cart.length) return print("购物车是空的（mcd list 看看，或 mcd draw 抽一张）", "dim");
+      print("购物车：", "c");
+      cart.forEach(function (it) { print("  " + it.name + " × " + it.qty + "  " + yuan(it.price * it.qty)); });
+    },
+    price: function () {
+      if (!cart.length) return print("购物车是空的", "r");
+      var sub = subtotal();
+      coupon = bestCoupon(sub);
+      print("核价结果（calculate-price）：", "c");
+      print("  商品小计  " + yuan(sub));
+      if (coupon) {
+        print("  优惠抵扣  -" + yuan(coupon.cut) + "（" + coupon.name + "）", "g");
+      } else {
+        print("  优惠抵扣  -¥0.00（还没领券？试试 mcd coupon）", "dim");
+      }
+      print("  应付合计  " + yuan(sub - (coupon ? coupon.cut : 0)), "y");
+    },
+    order: function () {
+      if (!store) return print("请先选门店：mcd stores → mcd use <序号>", "r");
+      if (!cart.length) return print("购物车是空的", "r");
+      var sub = subtotal();
+      coupon = bestCoupon(sub);
+      var total = sub - (coupon ? coupon.cut : 0);
+      print("订单确认（create-order · beType=1 到店自提）：", "c");
+      print("  门店：" + store.name);
+      cart.forEach(function (it) { print("  " + it.name + " × " + it.qty); });
+      if (coupon) print("  优惠：" + coupon.name + " -" + yuan(coupon.cut), "g");
+      print("  合计：" + yuan(total), "y");
+      print("演示模式：请按实际需求下单，理性消费。", "dim");
+      print("输入 YES 确认下单：", "r");
+      pending = true;
+    },
+    status: function () {
+      if (!lastOrder) return print("暂无订单（query-order）", "dim");
+      print("订单 " + lastOrder.id + "：" + lastOrder.status + " · 取餐码 " + lastOrder.code, "g");
+    },
+    clear: function () {
+      term.querySelectorAll(".ln,.echo").forEach(function (d) { d.remove(); });
+    }
+  };
+
+  function run(raw) {
+    var line = raw.trim();
+    if (!line) return;
+    echo(line);
+    if (pending) {
+      pending = false;
+      if (line === "YES") {
+        var sub = subtotal();
+        var total = sub - (coupon ? coupon.cut : 0);
+        lastOrder = { id: "MCD2026101400" + (100 + Math.floor(Math.random() * 900)), code: "A" + (1000 + Math.floor(Math.random() * 9000)), status: "制作中" };
+        print("下单成功（create-order 返回）：", "g");
+        print("  订单号 " + lastOrder.id + " · 应付 " + yuan(total) + " · 取餐码 " + lastOrder.code, "g");
+        print("  支付链接（演示）：https://pay.mcdonalds.com.cn/demo/" + lastOrder.id, "dim");
+        cart = [];
+      } else {
+        print("已取消下单", "dim");
+      }
+      return;
+    }
+    var parts = line.split(/\s+/);
+    if (parts[0] !== "mcd") {
+      if (parts[0] === "clear") return CMDS.clear();
+      return print("zsh: command not found: " + parts[0] + "（提示：命令以 mcd 开头，mcd help 查看）", "r");
+    }
+    var fn = CMDS[parts[1]];
+    if (!fn) return print("mcd: 未知命令 " + (parts[1] || "") + "（mcd help 查看）", "r");
+    fn(parts[2], parts[3]);
+  }
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { run(input.value); input.value = ""; }
+  });
+  term.addEventListener("click", function () { input.focus(); });
+
+  // 启动
+  echo("mcd init");
+  CMDS.init();
+  input.focus();
+})();
+</script>
+</body>
+</html>

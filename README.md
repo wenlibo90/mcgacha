@@ -78,6 +78,9 @@
 
 - [demo/index.html](./demo/index.html) — 演示导航
 - [demo/gacha.html](./demo/gacha.html) — 抽卡机演示（演示数据为 mock，真实使用由 MCP 提供数据）
+- [demo/story.html](./demo/story.html) — 徽章图鉴 · 麦门年度故事
+- [demo/dna.html](./demo/dna.html) — 麦门DNA 检测报告（含亲缘鉴定小工具）
+- [demo/cli.html](./demo/cli.html) — 终端下单（可交互 CLI：mcd help 查看命令）
 
 ## 目标用户
 
