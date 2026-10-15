@@ -32,13 +32,78 @@
   }
 
   /* ===== 卡牌舞台 ===== */
-  .stage { perspective: 1200px; margin-top: 24px; }
+  .stage {
+    position:relative; width:340px; height:500px;
+    margin-top:40px; perspective:1400px;
+    --glow: rgba(255,199,44,.30);
+  }
+  .stage.rar-ssr { --glow: rgba(255,199,44,.55); }
+  .stage.rar-sr  { --glow: rgba(192,214,228,.40); }
+  .stage.rar-r   { --glow: rgba(205,127,50,.34); }
+  .stage.rar-n   { --glow: rgba(120,105,85,.24); }
+
+  /* 呼吸光晕 */
+  .halo {
+    position:absolute; inset:-70px; border-radius:50%;
+    background: radial-gradient(circle, var(--glow) 0%, transparent 62%);
+    animation: haloBreath 3.2s ease-in-out infinite;
+    pointer-events:none; transition: background .5s;
+  }
+  @keyframes haloBreath { 0%,100%{ transform:scale(.92); opacity:.55; } 50%{ transform:scale(1.06); opacity:1; } }
+
+  /* SSR 放射光线 */
+  .rays {
+    position:absolute; inset:-110px; border-radius:50%;
+    background: repeating-conic-gradient(from 0deg, rgba(255,199,44,.16) 0deg 5deg, transparent 5deg 22deg);
+    -webkit-mask-image: radial-gradient(circle, #000 26%, transparent 68%);
+    mask-image: radial-gradient(circle, #000 26%, transparent 68%);
+    opacity:0; transition:opacity .45s;
+    animation: raysSpin 16s linear infinite;
+    pointer-events:none;
+  }
+  .rays.on { opacity:1; }
+  @keyframes raysSpin { to { transform: rotate(360deg); } }
+
+  /* 入场 + 待机浮动 */
+  .float {
+    width:100%; height:100%; transform-style:preserve-3d;
+    transition: transform .95s cubic-bezier(.18,.85,.25,1.08), opacity .5s;
+  }
+  .float.pre { transform: translateY(70vh) rotate(16deg) scale(.72); opacity:0; }
+  .float.bob { animation: bob 4s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+
+  /* 鼠标视差 */
+  .tilt {
+    width:100%; height:100%; transform-style:preserve-3d;
+    transition: transform .16s ease-out;
+    transform: rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+  }
+  .tilt.pull { transform: rotateX(0deg) rotateY(-12deg) scale(.95); transition: transform .14s ease-in; }
+
   .card3d {
     width: 340px; height: 500px; position:relative;
     transform-style: preserve-3d;
-    transition: transform .7s cubic-bezier(.2,.8,.3,1.1);
+    transition: transform .85s cubic-bezier(.25,.7,.25,1.12);
   }
   .card3d.flipped { transform: rotateY(180deg); }
+
+  /* 粒子画布 */
+  #fx { position:absolute; inset:-80px; width:500px; height:660px; pointer-events:none; z-index:6; }
+
+  /* 震屏 + 闪白 */
+  body.shake { animation: shake .38s ease-in-out; }
+  @keyframes shake {
+    0%,100%{ transform:translate(0,0); }
+    20%{ transform:translate(-6px,3px); } 40%{ transform:translate(5px,-4px); }
+    60%{ transform:translate(-4px,2px); } 80%{ transform:translate(3px,-2px); }
+  }
+  .flash {
+    position:fixed; inset:0; pointer-events:none; z-index:9;
+    background: radial-gradient(circle at 50% 42%, rgba(255,230,150,.85) 0%, rgba(255,199,44,.25) 32%, transparent 65%);
+    animation: flashOut .55s ease-out forwards;
+  }
+  @keyframes flashOut { from{ opacity:1; } to{ opacity:0; } }
   .face {
     position:absolute; inset:0; border-radius: 20px;
     backface-visibility: hidden;
@@ -52,6 +117,14 @@
   }
   .face.back .mark { width: 124px; height: auto; opacity: .95; }
   .face.back .hint { margin-top:28px; color:#ffe9a8; font-size:14px; letter-spacing:3px; }
+  .face.back::after {
+    content:""; position:absolute; inset:0; border-radius:17px;
+    background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,.22) 46%, rgba(255,255,255,.05) 52%, transparent 62%);
+    background-size:260% 100%;
+    background-position: var(--shx,130%) 0;
+    transition: background-position .25s ease-out;
+    pointer-events:none;
+  }
   .face.front {
     background: linear-gradient(180deg, #241b16 0%, #17110d 100%);
     border: 3px solid #FFC72C;
@@ -159,13 +232,17 @@
   <div class="period" id="periodLabel">麦门时间</div>
 </div>
 
-<div class="stage">
-  <div class="card3d" id="card3d">
-    <div class="face back" id="cardBack">
-      <svg class="mark" viewBox="0 0 100 76" role="img" aria-label="金拱门"><path d="M13 70 V33 C13 13 24 7 31 7 C42 7 50 15 50 31 C50 15 58 7 69 7 C76 7 87 13 87 33 V70" fill="none" stroke="#FFC72C" stroke-width="11" stroke-linejoin="round"/></svg>
-      <div class="hint">点击抽一张</div>
-    </div>
-    <div class="face front">
+<div class="stage" id="stage">
+  <div class="halo"></div>
+  <div class="rays" id="rays"></div>
+  <div class="float pre" id="float">
+    <div class="tilt" id="tilt">
+      <div class="card3d" id="card3d">
+        <div class="face back" id="cardBack">
+          <svg class="mark" viewBox="0 0 100 76" role="img" aria-label="金拱门"><path d="M13 70 V33 C13 13 24 7 31 7 C42 7 50 15 50 31 C50 15 58 7 69 7 C76 7 87 13 87 33 V70" fill="none" stroke="#FFC72C" stroke-width="11" stroke-linejoin="round"/></svg>
+          <div class="hint">点击抽一张</div>
+        </div>
+        <div class="face front">
       <div class="f-head">
         <span class="rarity" id="rarity">SSR</span>
         <span class="f-period" id="fPeriod">--</span>
@@ -194,8 +271,11 @@
         </div>
         <span class="badge open" id="sBadge">营业中</span>
       </div>
+        </div>
+      </div>
     </div>
   </div>
+  <canvas id="fx"></canvas>
 </div>
 
 <div class="actions">
@@ -287,7 +367,7 @@
   var current = null;
   var currentCoupon = null;
   var currentStore = null;
-  var flipping = false;
+  var busy = false;
 
   function pool() {
     return MENU.filter(function (m) {
@@ -299,12 +379,77 @@
   }
   function fen(v) { return "¥" + (v / 100).toFixed(2); }
 
+  var stage = document.getElementById("stage");
+  var floatEl = document.getElementById("float");
+  var tilt = document.getElementById("tilt");
+  var rays = document.getElementById("rays");
   var card3d = document.getElementById("card3d");
   var drawBtn = document.getElementById("drawBtn");
   var orderBtn = document.getElementById("orderBtn");
 
+  // ---------- 粒子引擎（canvas 覆盖层，零依赖） ----------
+  var fx = document.getElementById("fx");
+  var ctx = fx.getContext("2d");
+  fx.width = 500; fx.height = 660;
+  var parts = [], rafId = null;
+  function burst(n, colors, power) {
+    var cx = fx.width / 2, cy = fx.height / 2;
+    for (var i = 0; i < n; i++) {
+      var a = Math.random() * Math.PI * 2;
+      var sp = 2 + Math.random() * power;
+      parts.push({
+        x: cx, y: cy,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 2,
+        g: .12 + Math.random() * .08,
+        life: 1, decay: .012 + Math.random() * .014,
+        size: 3 + Math.random() * 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rot: Math.random() * Math.PI, vr: (Math.random() - .5) * .3,
+        rect: Math.random() > .5
+      });
+    }
+    if (!rafId) loop();
+  }
+  function loop() {
+    rafId = requestAnimationFrame(loop);
+    ctx.clearRect(0, 0, fx.width, fx.height);
+    parts = parts.filter(function (p) { return p.life > 0; });
+    if (!parts.length) { cancelAnimationFrame(rafId); rafId = null; return; }
+    parts.forEach(function (p) {
+      p.x += p.vx; p.y += p.vy; p.vy += p.g; p.rot += p.vr; p.life -= p.decay;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      if (p.rect) ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * .62);
+      else { ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+    });
+  }
+  function flash() {
+    var f = document.createElement("div");
+    f.className = "flash";
+    document.body.appendChild(f);
+    setTimeout(function () { f.remove(); }, 600);
+  }
+  function shake() {
+    document.body.classList.remove("shake");
+    void document.body.offsetWidth;
+    document.body.classList.add("shake");
+  }
+
+  // ---------- 稀有度演出 ----------
+  var GOLD = ["#FFC72C", "#ffe08a", "#fff3c4", "#e8a020"];
+  var EFFECTS = {
+    SSR: function () { burst(70, GOLD, 6.5); rays.classList.add("on"); flash(); shake(); },
+    SR:  function () { burst(34, ["#e8e2d5", "#c0d6e4", "#ffffff", "#9fb8c8"], 5); rays.classList.remove("on"); },
+    R:   function () { burst(18, ["#cd7f50", "#e0a070", "#8a7d68"], 4); rays.classList.remove("on"); },
+    N:   function () { rays.classList.remove("on"); }
+  };
+
   function draw() {
-    if (flipping) return;
+    if (busy) return;
+    busy = true;
     var p = pool();
     if (p.length === 0) { drawn = {}; p = pool(); }
     current = p[Math.floor(Math.random() * p.length)];
@@ -331,14 +476,24 @@
     document.getElementById("sName").textContent = currentStore.name;
     document.getElementById("sDist").textContent = currentStore.dist;
 
-    flipping = true;
+    // 稀有度光晕
+    stage.className = "stage rar-" + current.rarity.toLowerCase();
+
+    // 翻牌编舞：已翻开则先翻回，再蓄力后翻
     if (card3d.classList.contains("flipped")) {
       card3d.classList.remove("flipped");
-      setTimeout(function () { card3d.classList.add("flipped"); }, 380);
-      setTimeout(function () { flipping = false; }, 1100);
+      setTimeout(doFlip, 620);
     } else {
-      card3d.classList.add("flipped");
-      setTimeout(function () { flipping = false; }, 750);
+      doFlip();
+    }
+    function doFlip() {
+      tilt.classList.add("pull");
+      setTimeout(function () {
+        tilt.classList.remove("pull");
+        card3d.classList.add("flipped");
+        setTimeout(function () { EFFECTS[current.rarity](); }, 400);
+        setTimeout(function () { busy = false; }, 950);
+      }, 150);
     }
 
     orderBtn.disabled = false;
@@ -372,6 +527,29 @@
   });
   document.getElementById("okBtn").addEventListener("click", function () {
     mask.classList.remove("show");
+  });
+
+  // ---------- 入场：卡片从屏幕外飞入 ----------
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () { floatEl.classList.remove("pre"); });
+  });
+  setTimeout(function () { floatEl.classList.add("bob"); }, 1100);
+
+  // ---------- 鼠标视差 + 卡背光泽 ----------
+  var backEl = document.getElementById("cardBack");
+  stage.addEventListener("mousemove", function (e) {
+    if (floatEl.classList.contains("pre")) return;
+    var r = stage.getBoundingClientRect();
+    var px = (e.clientX - r.left) / r.width - .5;
+    var py = (e.clientY - r.top) / r.height - .5;
+    tilt.style.setProperty("--ry", (px * 14) + "deg");
+    tilt.style.setProperty("--rx", (-py * 10) + "deg");
+    backEl.style.setProperty("--shx", (130 - (px + .5) * 180) + "%");
+  });
+  stage.addEventListener("mouseleave", function () {
+    tilt.style.setProperty("--rx", "0deg");
+    tilt.style.setProperty("--ry", "0deg");
+    backEl.style.setProperty("--shx", "130%");
   });
 
   drawBtn.addEventListener("click", draw);
